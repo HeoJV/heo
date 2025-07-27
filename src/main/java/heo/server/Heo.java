@@ -10,6 +10,8 @@ import heo.middleware.Json;
 import heo.middleware.MiddlewareChain;
 import heo.middleware.Urlencoded;
 import heo.router.Route;
+import heo.router.Router;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -60,6 +62,38 @@ public class Heo {
             this.pathMiddlewares.get("/").add(middleware);
         } else {
             this.pathMiddlewares.put("/", new ArrayList<>(Collections.singletonList(middleware)));
+        }
+    }
+
+    public void use(Router router){
+        this.routes.addAll(router.getRoutes());
+        for (Map.Entry<String, List<Middleware>> entry : router.getPathMiddlewares().entrySet()) {
+            String path = entry.getKey();
+            List<Middleware> middlewares = entry.getValue();
+            if (this.pathMiddlewares.containsKey(path)) {
+                this.pathMiddlewares.get(path).addAll(middlewares);
+            } else {
+                this.pathMiddlewares.put(path, new ArrayList<>(middlewares));
+            }
+        }
+    }
+
+    public void use(String path,Router router){
+        for (Route route : router.getRoutes()) {
+            String fullPath = path + route.path;
+            List<Middleware> allMiddlewares = new ArrayList<>(route.middlewares);
+            List<Middleware> pathMiddlewares = findMiddlewaresByPath(fullPath);
+            allMiddlewares.addAll(pathMiddlewares);
+            this.routes.add(new Route(route.method, fullPath, allMiddlewares));
+        }
+        for (Map.Entry<String, List<Middleware>> entry : router.getPathMiddlewares().entrySet()) {
+            String fullPath = path + entry.getKey();
+            List<Middleware> middlewares = entry.getValue();
+            if (this.pathMiddlewares.containsKey(fullPath)) {
+                this.pathMiddlewares.get(fullPath).addAll(middlewares);
+            } else {
+                this.pathMiddlewares.put(fullPath, new ArrayList<>(middlewares));
+            }
         }
     }
 
