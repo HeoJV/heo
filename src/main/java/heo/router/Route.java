@@ -1,17 +1,44 @@
 package heo.router;
 
 import heo.interfaces.Middleware;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Route {
-   public final String method;
-   public final String path;
-   public final List<Middleware> middlewares;
+   private Map<String,Route> children = new HashMap<>();
+   private Map<String,List<Middleware>> middlewares = new HashMap<>();
+   private boolean isParameterized = false;
+   public Map<String, Route> getChildren() {
+      return children;
+   }
 
-   public Route(String method, String path, List<Middleware> middlewares) {
-      this.method = method;
-      this.path = path;
-      this.middlewares = middlewares;
+   public void setMiddlewares(String method, List<Middleware> middlewares) {
+      this.middlewares.put(
+              method, middlewares
+      );
+   }
+
+   public int totalMethods() {
+      return middlewares.size();
+   }
+
+
+   public List<Middleware> getMiddlewares(String method) {
+      return middlewares.getOrDefault(method, List.of());
+   }
+
+   public boolean isMethodSupported(String method) {
+      return middlewares.containsKey(method);
+   }
+
+   public boolean isParameterized() {
+      return isParameterized;
+   }
+
+   public void setParameterized(boolean parameterized) {
+      isParameterized = parameterized;
    }
 }
-

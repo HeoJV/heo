@@ -1,11 +1,14 @@
 package heo.server;
 
 
+import heo.exception.MethodNotAllowError;
 import heo.http.HttpMethod;
+import heo.http.HttpStatusCode;
 import heo.http.Request;
 import heo.http.Response;
 import heo.interfaces.ErrorHandler;
 import heo.interfaces.Middleware;
+import heo.interfaces.RouterHandler;
 import heo.middleware.Json;
 import heo.middleware.MiddlewareChain;
 import heo.middleware.Urlencoded;
@@ -25,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Heo server class that handles HTTP requests and routes.
@@ -32,12 +37,16 @@ import java.util.Objects;
  * @author 102004tan
  * @version 1.0
  */
-public class Heo {
-    private final List<Route> routes = new ArrayList<>();
-    private final Map<String, List<Middleware>> pathMiddlewares = new HashMap<>();
+public class Heo implements RouterHandler {
     private ErrorHandler errorHandler;
     private Json json;
     private Urlencoded urlencoded;
+    private Router router;
+
+    public static Router Router(){
+        return new Router();
+    }
+
 
     public Json json() {
         if (this.json == null) {
@@ -53,90 +62,31 @@ public class Heo {
         return this.urlencoded;
     }
 
+    public Heo(){
+        this.router = new Router();
+    }
+
     public void use(ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
     }
 
-    public void use(Middleware middleware) {
-        if (this.pathMiddlewares.containsKey("/")) {
-            this.pathMiddlewares.get("/").add(middleware);
-        } else {
-            this.pathMiddlewares.put("/", new ArrayList<>(Collections.singletonList(middleware)));
-        }
-    }
-
-    public void use(Router router){
-        this.routes.addAll(router.getRoutes());
-        for (Map.Entry<String, List<Middleware>> entry : router.getPathMiddlewares().entrySet()) {
-            String path = entry.getKey();
-            List<Middleware> middlewares = entry.getValue();
-            if (this.pathMiddlewares.containsKey(path)) {
-                this.pathMiddlewares.get(path).addAll(middlewares);
-            } else {
-                this.pathMiddlewares.put(path, new ArrayList<>(middlewares));
-            }
-        }
-    }
-
-    public void use(String path,Router router){
-        for (Route route : router.getRoutes()) {
-            String fullPath = path + route.path;
-            List<Middleware> allMiddlewares = new ArrayList<>(route.middlewares);
-            List<Middleware> pathMiddlewares = findMiddlewaresByPath(fullPath);
-            allMiddlewares.addAll(pathMiddlewares);
-            this.routes.add(new Route(route.method, fullPath, allMiddlewares));
-        }
-        for (Map.Entry<String, List<Middleware>> entry : router.getPathMiddlewares().entrySet()) {
-            String fullPath = path + entry.getKey();
-            List<Middleware> middlewares = entry.getValue();
-            if (this.pathMiddlewares.containsKey(fullPath)) {
-                this.pathMiddlewares.get(fullPath).addAll(middlewares);
-            } else {
-                this.pathMiddlewares.put(fullPath, new ArrayList<>(middlewares));
-            }
-        }
-    }
-
-    public void use(String path, Middleware... middlewares) {
-        this.pathMiddlewares.put(path, new ArrayList<>(Arrays.asList(middlewares)));
-        List<Route> foundRoutes = findRoutesByPath(path);
-        if (!foundRoutes.isEmpty()) {
-            for (Route route : foundRoutes) {
-                route.middlewares.addAll(Arrays.asList(middlewares));
-            }
-        }
-    }
-
-    public void get(String path, Middleware... mws) {
-        addRoute(HttpMethod.GET, path, mws);
-    }
-
-    public void post(String path, Middleware... mws) {
-        addRoute(HttpMethod.POST, path, mws);
-    }
-
-    private void addRoute(String method, String path, Middleware... mws) {
-        List<Middleware> all = new ArrayList<>();
-        List<Middleware> pathMws = findMiddlewaresByPath(path);
-        System.out.println("Path Middlewares: " + pathMws.size());
-        all.addAll(pathMws);
-        all.addAll(Arrays.asList(mws));
-        System.out.println("All Middlewares: " + all.size());
-        this.routes.add(new Route(method, path, all));
-    }
 
     public void listen(int port) {
         try(ServerSocket serverSocket = new ServerSocket(port);) {
             while (true) {
                 try {
+                    ExecutorService pool = Executors.newFixedThreadPool(100);
+//                    Socket socket = serverSocket.accept();
+//                    new Thread(() -> {
+//                        try {
+//                            handle(socket);
+//                        } catch (IOException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }).start();
                     Socket socket = serverSocket.accept();
-                    new Thread(() -> {
-                        try {
-                            handle(socket);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }).start();
+                    pool.submit(() -> handle(socket));
+                    socket.setSoTimeout(30000);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -151,7 +101,7 @@ public class Heo {
         listen(port);
     }
 
-    private void handle(Socket socket) throws IOException {
+    private void handle(Socket socket){
         Response res = new Response(socket);
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -174,72 +124,63 @@ public class Heo {
                     }
                 }
                 char[] bodyChars = new char[contentLength];
-                int read = in.read(bodyChars, 0, contentLength);
                 String body = new String(bodyChars);
-                System.out.println("Body: " + body);
                 req.setRawBody(body);
                 req.setHeaders("Content-Type", "application/json");
-                if (isNotFound(method, path)) {
-                    res.send("404 Not Found: " + path);
-                    in.close();
-                    return;
+
+                Route routeFound = router.search(path,method);
+                if (routeFound != null){
+                    MiddlewareChain chain = new MiddlewareChain(routeFound.getMiddlewares(method),errorHandler);
+                    chain.next(req,res);
                 }
-                for (Route route : this.routes) {
-                    if (route.method.equals(method) && route.path.equals(path)) {
-                        MiddlewareChain chain = new MiddlewareChain(route.middlewares, this.errorHandler);
-                        chain.next(req, res);
-                        in.close();
-                        return;
-                    }
+                else{
+                    res.status(404).send("404");
                 }
+
                 in.close();
             } catch (IOException e) {
                 System.err.println("Error reading request: " + e.getMessage());
                 res.send("400 Bad Request");
             }
         } catch (Exception e) {
-            System.err.println("Error handling request: " + e.getMessage());
+            if (e instanceof MethodNotAllowError){
+                res.status(HttpStatusCode.METHOD_NOT_ALLOWED).send("Method not allow");
+            }
         }
     }
 
-    private List<Middleware> findMiddlewaresByPath(String path) {
-        String[] pathParts = path.split("/");
-        StringBuilder currentPath = new StringBuilder();
-        List<Middleware> matchedMiddlewares = new ArrayList<>(this.pathMiddlewares.getOrDefault("/", new ArrayList<>()));
-        for (String pathPart : pathParts) {
-            if (!pathPart.isEmpty()) {
-                currentPath.append("/").append(pathPart);
-                System.out.println("Current Path: " + String.valueOf(currentPath));
-                if (this.pathMiddlewares.containsKey(currentPath.toString())) {
-                    matchedMiddlewares.addAll(this.pathMiddlewares.get(currentPath.toString()));
-                }
-            }
-        }
-        return matchedMiddlewares;
+    @Override
+    public void use(Router router) {
+        this.router.use(router);
     }
 
-    private List<Route> findRoutesByPath(String path) {
-        List<Route> matchedRoutes = new ArrayList<>();
-        String[] pathParts = path.split("/");
-        for (Route route : this.routes) {
-            String[] routeParts = route.path.split("/");
-            if (routeParts.length >= pathParts.length) {
-                for (int i = 0; i < pathParts.length && Objects.equals(routeParts[i], pathParts[i]); i++) {
-                    if (i == pathParts.length - 1) {
-                        matchedRoutes.add(route);
-                    }
-                }
-            }
-        }
-        return matchedRoutes;
+    @Override
+    public void use(String path, Router router) {
+        this.router.use(path,router);
     }
 
-    private boolean isNotFound(String method, String path) {
-        for (Route route : this.routes) {
-            if (route.method.equals(method) && route.path.equals(path)) {
-                return false;
-            }
-        }
-        return true;
+    @Override
+    public void use(Middleware middleware) {
+        this.router.use(middleware);
+    }
+
+    @Override
+    public void use(Middleware... middlewares) {
+        this.router.use(middlewares);
+    }
+
+    @Override
+    public void use(String path, Middleware... middlewares) {
+        this.router.use(path,middlewares);
+    }
+
+    @Override
+    public void get(String path, Middleware... middlewares) {
+        this.router.get(path,middlewares);
+    }
+
+    @Override
+    public void post(String path, Middleware... middlewares) {
+        this.router.post(path,middlewares);
     }
 }

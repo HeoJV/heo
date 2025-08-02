@@ -1,128 +1,160 @@
 package heo.router;
 
+import heo.core.Console;
+import heo.exception.MethodNotAllowError;
 import heo.interfaces.Middleware;
+import heo.interfaces.RouterHandler;
 
 import java.util.*;
 
-public class Router {
-    private String path = "/";
-    private final List<Route> routes = new ArrayList<>();
-    private final Map<String, List<Middleware>> pathMiddlewares = new HashMap<>();
-
-
-    public List<Route> getRoutes() {
-        return Collections.unmodifiableList(routes);
+public class Router implements RouterHandler {
+    private Route root;
+    private final Map<String,List<Middleware>> globalMiddlewares = new HashMap<>();
+    public Route getRoot() {
+        return root;
     }
-
-    public Map<String, List<Middleware>> getPathMiddlewares() {
-        return Collections.unmodifiableMap(pathMiddlewares);
-    }
-
-
-
-    public void get(String path,Middleware ... mws){
-        addRoute("GET", path, mws);
-    }
-
-    public void use(String path, Middleware... middlewares) {
-        if (this.pathMiddlewares.containsKey(path)) {
-            this.pathMiddlewares.get(path).addAll(Arrays.asList(middlewares));
-        } else {
-            this.pathMiddlewares.put(path, new ArrayList<>(Arrays.asList(middlewares)));
-        }
-        List<Route> foundRoutes = findRoutesByPath(path);
-        if (!foundRoutes.isEmpty()) {
-            for (Route route : foundRoutes) {
-                route.middlewares.addAll(Arrays.asList(middlewares));
-            }
-        }
-    }
-
-    public void use(Middleware... middlewares) {
-        if (this.pathMiddlewares.containsKey("/")) {
-            this.pathMiddlewares.get("/").addAll(Arrays.asList(middlewares));
-        } else {
-            this.pathMiddlewares.put("/", new ArrayList<>(Arrays.asList(middlewares)));
-        }
-        List<Route> foundRoutes = findRoutesByPath("/");
-        if (!foundRoutes.isEmpty()) {
-            for (Route route : foundRoutes) {
-                route.middlewares.addAll(Arrays.asList(middlewares));
-            }
-        }
+    public Router() {
+        this.root = new Route();
     }
 
     public void use(Router router){
-        this.routes.addAll(router.getRoutes());
-        for (Map.Entry<String, List<Middleware>> entry : router.getPathMiddlewares().entrySet()) {
-            String path = entry.getKey();
-            List<Middleware> middlewares = entry.getValue();
-            if (this.pathMiddlewares.containsKey(path)) {
-                this.pathMiddlewares.get(path).addAll(middlewares);
-            } else {
-                this.pathMiddlewares.put(path, new ArrayList<>(middlewares));
-            }
-        }
+        use("/", router);
     }
 
     public void use(String path,Router router){
-        for (Route route : router.getRoutes()) {
-            String fullPath = path + route.path;
-            List<Middleware> allMiddlewares = new ArrayList<>(route.middlewares);
-            List<Middleware> pathMiddlewares = findMiddlewaresByPath(fullPath);
-            allMiddlewares.addAll(pathMiddlewares);
-            this.routes.add(new Route(route.method, fullPath, allMiddlewares));
+        System.out.println("Path: " + path);
+        if (router == null || router.getRoot() == null) {
+            return;
         }
-        for (Map.Entry<String, List<Middleware>> entry : router.getPathMiddlewares().entrySet()) {
-            String fullPath = path + entry.getKey();
-            List<Middleware> middlewares = entry.getValue();
-            if (this.pathMiddlewares.containsKey(fullPath)) {
-                this.pathMiddlewares.get(fullPath).addAll(middlewares);
+        System.out.println("Router child size "+router.getRoot().getChildren().size());
+        router.getRoot().getChildren().forEach((key, route) -> {
+            if (!globalMiddlewares.containsKey(key)) {
+                globalMiddlewares.put(key,router.globalMiddlewares.getOrDefault(key, List.of()));
+            }else{
+                globalMiddlewares.get(key).addAll(router.globalMiddlewares.getOrDefault(key, List.of()));
+            }
+        });
+        System.out.println("Router child size 2"+router.getRoot().getChildren().size());
+        Route current = this.root;
+        String[] parts = path.split("/");
+        // add middlewares from router to globalMiddlewares
+        System.out.println("this.root == router.getRoot(): " + (this.root == router.getRoot()));
+
+        // create node from path
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (current.getChildren().containsKey(part)) {
+                current = current.getChildren().get(part);
             } else {
-                this.pathMiddlewares.put(fullPath, new ArrayList<>(middlewares));
+                Route newRoute = new Route();
+                current.getChildren().put(part, newRoute);
+                current = newRoute;
             }
         }
+
+        // add node from router to current
+        System.out.println("Current : "+ current.getChildren().size());
+        System.out.println("router : "+ router.getRoot().getChildren().size());
+        router.getRoot().getChildren().forEach((s, route) -> {
+            System.out.println("Keyyy::"+s);
+        });
+        Route finalCurrent = current;
+        router.getRoot().getChildren().forEach((key, route)->{
+            System.out.println("Key "+key);
+            if (!finalCurrent.getChildren().containsKey(key)){
+                System.out.println("key "+key);
+                finalCurrent.getChildren().put(key, route);
+            }
+        });
     }
 
-    private List<Route> findRoutesByPath(String path) {
-        List<Route> matchedRoutes = new ArrayList<>();
-        String[] pathParts = path.split("/");
-        for (Route route : this.routes) {
-            String[] routeParts = route.path.split("/");
-            if (routeParts.length >= pathParts.length) {
-                for (int i = 0; i < pathParts.length && Objects.equals(routeParts[i], pathParts[i]); i++) {
-                    if (i == pathParts.length - 1) {
-                        matchedRoutes.add(route);
-                    }
-                }
+    public void use(Middleware middleware) {
+        use("/", middleware);
+    }
+
+    public void use(Middleware... middlewares) {
+        use("/", middlewares);
+    }
+
+    public void use(String path, Middleware... middlewares) {
+        globalMiddlewares.put(path, List.of(middlewares));
+    }
+
+    public void get(String path, Middleware ... middlewares) {
+        addRoute("GET", path, middlewares);
+    }
+
+    public void post(String path, Middleware ...middlewares) {
+        addRoute("POST", path, middlewares);
+    }
+    /**
+     * app.get("/path", (request, response, next) -> {})
+     */
+
+    private void addRoute(String method,String path,Middleware ...middlewares){
+        Route current = this.root;
+        String[] parts = path.split("/");
+        boolean isNew = false;
+        for (String part: parts){
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (current.getChildren().containsKey(part)) {
+                current = current.getChildren().get(part);
+            } else {
+                System.out.println("Creating new route for part: " + part +" isParameterized: " + part.startsWith(":"));
+                isNew = true;
+                Route newRoute = new Route();
+                newRoute.setParameterized(part.startsWith(":"));
+                current.getChildren().put(part, newRoute);
+                current = newRoute;
             }
         }
-        return matchedRoutes;
+
+        if (!isNew && current.isMethodSupported(method)) {
+            return;
+        }
+        List<Middleware> combined = new ArrayList<>();
+        globalMiddlewares.forEach((pathKey, middlewareList) -> {
+            if (pathKey.equals("/") || path.startsWith(pathKey)) {
+                combined.addAll(middlewareList);
+            }
+        });
+        combined.addAll(List.of(middlewares));
+        current.setMiddlewares(method, combined);
     }
 
-    private void addRoute(String method, String path, Middleware... mws) {
-        List<Middleware> all = new ArrayList<>();
-        List<Middleware> pathMws = findMiddlewaresByPath(path);
-        System.out.println("Path Middlewares: " + pathMws.size());
-        all.addAll(pathMws);
-        all.addAll(Arrays.asList(mws));
-        System.out.println("All Middlewares: " + all.size());
-        this.routes.add(new Route(method, path, all));
-    }
-
-    private List<Middleware> findMiddlewaresByPath(String path) {
-        String[] pathParts = path.split("/");
-        StringBuilder currentPath = new StringBuilder();
-        List<Middleware> matchedMiddlewares = new ArrayList<>(this.pathMiddlewares.getOrDefault("/", new ArrayList<>()));
-        for (String pathPart : pathParts) {
-            if (!pathPart.isEmpty()) {
-                currentPath.append("/").append(pathPart);
-                System.out.println("Current Path: " + String.valueOf(currentPath));
-                if (this.pathMiddlewares.containsKey(currentPath.toString())) {
-                    matchedMiddlewares.addAll(this.pathMiddlewares.get(currentPath.toString()));
-                }
+    public Route search(String path,String method){
+        Route current = root;
+        String[] parts = path.split("/");
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            assert current != null;
+            Console.log("length ",current.getChildren().size());
+            Map<String,Route> children = current.getChildren();
+            if (children.containsKey(part)) {
+                current = current.getChildren().get(part);
+            }
+            else if (children.values().stream().anyMatch(Route::isParameterized)){
+                current = current.getChildren().values().stream()
+                        .filter(Route::isParameterized)
+                        .findFirst()
+                        .orElse(null);
+            }
+            else{
+                return null;
             }
         }
-        return matchedMiddlewares;
+
+        assert current != null;
+        if (!current.isMethodSupported(method)){
+            throw new MethodNotAllowError("Method not allow");
+        }
+
+        return current;
     }
 }
