@@ -11,9 +11,18 @@ public class Route {
    private Map<String,Route> children = new HashMap<>();
    private Map<String,List<Middleware>> middlewares = new HashMap<>();
    private boolean isParameterized = false;
+   private String keyParam;
    public Map<String, Route> getChildren() {
       return children;
    }
+
+   public String getKeyParam() {
+        return keyParam;
+   }
+
+    public void setKeyParam(String keyParam) {
+        this.keyParam = keyParam;
+    }
 
    public void setMiddlewares(String method, List<Middleware> middlewares) {
       this.middlewares.put(

@@ -2,6 +2,7 @@ package heo.router;
 
 import heo.core.Console;
 import heo.exception.MethodNotAllowError;
+import heo.http.HttpMethod;
 import heo.interfaces.Middleware;
 import heo.interfaces.RouterHandler;
 
@@ -22,11 +23,10 @@ public class Router implements RouterHandler {
     }
 
     public void use(String path,Router router){
-        System.out.println("Path: " + path);
+        path = path.isEmpty() ? "/" : path;
         if (router == null || router.getRoot() == null) {
             return;
         }
-        System.out.println("Router child size "+router.getRoot().getChildren().size());
         router.getRoot().getChildren().forEach((key, route) -> {
             if (!globalMiddlewares.containsKey(key)) {
                 globalMiddlewares.put(key,router.globalMiddlewares.getOrDefault(key, List.of()));
@@ -34,11 +34,8 @@ public class Router implements RouterHandler {
                 globalMiddlewares.get(key).addAll(router.globalMiddlewares.getOrDefault(key, List.of()));
             }
         });
-        System.out.println("Router child size 2"+router.getRoot().getChildren().size());
         Route current = this.root;
         String[] parts = path.split("/");
-        // add middlewares from router to globalMiddlewares
-        System.out.println("this.root == router.getRoot(): " + (this.root == router.getRoot()));
 
         // create node from path
         for (String part : parts) {
@@ -54,17 +51,9 @@ public class Router implements RouterHandler {
             }
         }
 
-        // add node from router to current
-        System.out.println("Current : "+ current.getChildren().size());
-        System.out.println("router : "+ router.getRoot().getChildren().size());
-        router.getRoot().getChildren().forEach((s, route) -> {
-            System.out.println("Keyyy::"+s);
-        });
         Route finalCurrent = current;
         router.getRoot().getChildren().forEach((key, route)->{
-            System.out.println("Key "+key);
             if (!finalCurrent.getChildren().containsKey(key)){
-                System.out.println("key "+key);
                 finalCurrent.getChildren().put(key, route);
             }
         });
@@ -83,12 +72,28 @@ public class Router implements RouterHandler {
     }
 
     public void get(String path, Middleware ... middlewares) {
-        addRoute("GET", path, middlewares);
+        addRoute(HttpMethod.GET, path, middlewares);
     }
 
     public void post(String path, Middleware ...middlewares) {
-        addRoute("POST", path, middlewares);
+        addRoute(HttpMethod.POST, path, middlewares);
     }
+
+    @Override
+    public void put(String path, Middleware... middlewares) {
+        addRoute(HttpMethod.PUT, path, middlewares);
+    }
+
+    @Override
+    public void patch(String path, Middleware... middlewares) {
+        addRoute(HttpMethod.PATCH, path, middlewares);
+    }
+
+    @Override
+    public void delete(String path, Middleware... middlewares) {
+        addRoute(HttpMethod.DELETE, path, middlewares);
+    }
+
     /**
      * app.get("/path", (request, response, next) -> {})
      */
@@ -104,10 +109,10 @@ public class Router implements RouterHandler {
             if (current.getChildren().containsKey(part)) {
                 current = current.getChildren().get(part);
             } else {
-                System.out.println("Creating new route for part: " + part +" isParameterized: " + part.startsWith(":"));
                 isNew = true;
                 Route newRoute = new Route();
                 newRoute.setParameterized(part.startsWith(":"));
+                newRoute.setKeyParam(part.startsWith(":") ? part.substring(1) : null);
                 current.getChildren().put(part, newRoute);
                 current = newRoute;
             }
@@ -134,7 +139,6 @@ public class Router implements RouterHandler {
                 continue;
             }
             assert current != null;
-            Console.log("length ",current.getChildren().size());
             Map<String,Route> children = current.getChildren();
             if (children.containsKey(part)) {
                 current = current.getChildren().get(part);
