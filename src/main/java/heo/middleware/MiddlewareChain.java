@@ -1,6 +1,7 @@
 // Source code is decompiled from a .class file using FernFlower decompiler.
 package heo.middleware;
 
+import heo.exception.ErrorResponse;
 import heo.http.Request;
 import heo.http.Response;
 import heo.interfaces.ErrorHandler;
@@ -31,6 +32,11 @@ public class MiddlewareChain {
 
    public void next(Request req, Response res, Exception e) throws Exception {
       if (this.errorHandler != null) {
+         if (e instanceof ErrorResponse){
+            res.status(((ErrorResponse) e).getStatus());
+         }else{
+            res.status(500);
+         }
          this.errorHandler.handle(e, req, res);
       } else {
          throw e;

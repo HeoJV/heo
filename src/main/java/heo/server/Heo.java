@@ -106,30 +106,88 @@ public class Heo implements RouterHandler {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             try {
-                String line = in.readLine();
-                if (line == null || line.isEmpty()) {
+                String requestLine  = in.readLine();
+                if (requestLine  == null || requestLine .isEmpty()) {
                     in.close();
                     return;
                 }
-                String[] parts = line.split(" ");
+                String[] parts = requestLine .split(" ");
                 String method = parts[0];
                 String path = parts[1];
-                Request req = new Request(method, path);
-                String ipAddress = socket.getInetAddress().getHostAddress();
-                req.setIpAddress(ipAddress);
-                int contentLength = 0;
-                while ((line = in.readLine()) != null && !line.isEmpty()) {
-                    if (line.toLowerCase().startsWith("content-length:")) {
-                        contentLength = Integer.parseInt(line.substring("content-length:".length()).trim());
+
+
+                /*
+                Query
+                */
+                Map<String,String> queryParams = new HashMap<>();
+                if (path.contains("?") && method.equals(HttpMethod.GET)) {
+                    String[] pathParts = path.split("\\?");
+                    path = pathParts[0];
+                    String queryString = pathParts[1];
+                    for (String param : queryString.split("&")) {
+                        String[] keyValue = param.split("=");
+                        if (keyValue.length == 2) {
+                            queryParams.put(keyValue[0], keyValue[1]);
+                        }
                     }
                 }
-                char[] bodyChars = new char[contentLength];
-                String body = new String(bodyChars);
+
+                Request req = new Request(method, path);
+                req.setQuery(queryParams);
+                String ipAddress = socket.getInetAddress().getHostAddress();
+                req.setIpAddress(ipAddress);
+
+                // Header
+                String line;
+                while ((line = in.readLine()) != null && !line.isEmpty()) {
+                    int separator = line.indexOf(":");
+                    if (separator != -1) {
+                        String key = line.substring(0, separator).trim();
+                        String value = line.substring(separator + 1).trim();
+                        if (key.equalsIgnoreCase("Content-Type") && value.equalsIgnoreCase("application/json")) {
+                            req.setHeaders("Content-Type", "application/json");
+                        } else if (key.equalsIgnoreCase("Content-Type") && value.equalsIgnoreCase("application/x-www-form-urlencoded")) {
+                            req.setHeaders("Content-Type", "application/x-www-form-urlencoded");
+                        } else {
+                            req.setHeaders(key, value);
+                        }
+                    }
+                }
+
+//                int contentLength = 0;
+//                while ((line = in.readLine()) != null && !line.isEmpty()) {
+//                    if (line.toLowerCase().startsWith("content-length:")) {
+//                        contentLength = Integer.parseInt(line.substring("content-length:".length()).trim());
+//                    }
+//                }
+//                char[] bodyChars = new char[contentLength];
+//                int read = in.read(bodyChars, 0, contentLength);
+//                String body = new String(bodyChars, 0, read);
+//                req.setRawBody(body);
+//                req.setHeaders("Content-Type", "application/json");
+
+                StringBuilder bodyBuilder = new StringBuilder();
+                while (in.ready()) {
+                    bodyBuilder.append((char) in.read());
+                }
+                String body = bodyBuilder.toString();
                 req.setRawBody(body);
-                req.setHeaders("Content-Type", "application/json");
+
+
 
                 Route routeFound = router.search(path,method);
                 if (routeFound != null){
+
+                    // add param
+                    if (routeFound.isParameterized()){
+                        System.out.println("Parameterized route found: " + path);
+                        System.out.print("Parameters key : "+ routeFound.getKeyParam());
+                        String value = path.substring(path.lastIndexOf("/") + 1);
+                        req.setParams(
+                                Collections.singletonMap(routeFound.getKeyParam(), value)
+                        );
+                    }
+
                     MiddlewareChain chain = new MiddlewareChain(routeFound.getMiddlewares(method),errorHandler);
                     chain.next(req,res);
                 }
@@ -182,5 +240,20 @@ public class Heo implements RouterHandler {
     @Override
     public void post(String path, Middleware... middlewares) {
         this.router.post(path,middlewares);
+    }
+
+    @Override
+    public void put(String path, Middleware... middlewares) {
+        this.router.put(path,middlewares);
+    }
+
+    @Override
+    public void patch(String path, Middleware... middlewares) {
+        this.router.patch(path,middlewares);
+    }
+
+    @Override
+    public void delete(String path, Middleware... middlewares) {
+        this.router.delete(path,middlewares);
     }
 }
