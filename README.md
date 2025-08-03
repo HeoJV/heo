@@ -28,12 +28,12 @@ cd heo
 ### 2. Run the server
 ```bash
 javac -d out src/**/*.java
-java -cp out heo.Main
+java -cp out heo.MainTest
 ```
 
 ### 3. Example Usage
 ```java
-public class Main {
+public class MainTest {
     public static void main(String[] args){
         Dotenv.config();
         Heo heo = new Heo();
