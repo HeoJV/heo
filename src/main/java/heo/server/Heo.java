@@ -2,6 +2,7 @@ package heo.server;
 
 
 import heo.exception.MethodNotAllowError;
+import heo.exception.NotFoundError;
 import heo.http.HttpMethod;
 import heo.http.HttpStatusCode;
 import heo.http.Request;
@@ -177,26 +178,23 @@ public class Heo implements RouterHandler {
 
                 Route routeFound = router.search(path,method);
                 if (routeFound != null){
-
-                    // add param
-                    if (routeFound.isParameterized(method)){
-                        // 2-id
-                        String keyParam = routeFound.getParam(method);
-                        String key = keyParam.split("-")[1];
-                        String value = path.split("/")[Integer.parseInt(keyParam.split("-")[0])];
-                        System.out.println(" with value: " + value);
-                        req.setParams(
-                                Collections.singletonMap(key, value)
-                        );
+                    System.out.println("Has params: " + routeFound.hasParams(method));
+                    if (routeFound.hasParams(method)){
+                        Map<Integer,String> params = routeFound.getParams(method);
+                        Map<String,String> paramMap = new HashMap<>();
+                        for (Map.Entry<Integer, String> entry : params.entrySet()) {
+                            int index = entry.getKey();
+                            String key = entry.getValue();
+                            String value = path.split("/")[index];
+                            paramMap.put(key, value);
+                        }
+                        System.out.println("Params: " + paramMap);
+                        req.setParams(paramMap);
                     }
 
                     MiddlewareChain chain = new MiddlewareChain(routeFound.getMiddlewares(method),errorHandler);
                     chain.next(req,res);
                 }
-                else{
-                    res.status(404).send("404");
-                }
-
                 in.close();
             } catch (IOException e) {
                 System.err.println("Error reading request: " + e.getMessage());
@@ -205,6 +203,8 @@ public class Heo implements RouterHandler {
         } catch (Exception e) {
             if (e instanceof MethodNotAllowError){
                 res.status(HttpStatusCode.METHOD_NOT_ALLOWED).send("Method not allow");
+            }else if (e instanceof NotFoundError){
+                res.status(HttpStatusCode.NOT_FOUND).send(e.getMessage());
             }
         }
     }

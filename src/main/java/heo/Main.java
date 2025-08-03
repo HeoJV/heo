@@ -21,20 +21,31 @@ public class Main {
         heo.use(new Morgan());
         heo.use(new ErrorHandlerMw());
 
-        heo.get("/test/:slug/follow",(req,res,next)->{
-            res.json(req.params("slug"));
+        heo.get("/test/:slug/:abc",(req,res,next)->{
+            res.json(
+                    Map.of(
+                            "message", "Hello World",
+                            "slug", req.params("slug"),
+                            "abc", req.params("abc")
+                    )
+            );
         });
 
-        heo.delete("/test/:slug/follow",(req,res,next)->{
-            res.json(req.params("slug"));
+        heo.get("/test/:slug/:abc/follow",(req,res,next)->{
+            res.json(
+                    Map.of(
+                            "message", "Hello World follow",
+                            "slug", req.params("slug"),
+                            "abc", req.params("abc")
+                    )
+            );
         });
 
-        heo.get("/test2/:slug",(req,res,next)->{
-            res.json(req.params("slug"));
-        });
-
-        heo.delete("/test2/:slug",(req,res,next)->{
-            res.json(req.params("slug"));
+        heo.get("/test/:abc",(req,res,next)->{
+            res.json(Map.of(
+                    "message", "Hello World",
+                    "slug", req.params("abc")
+            ));
         });
 
 

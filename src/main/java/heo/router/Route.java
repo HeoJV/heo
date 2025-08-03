@@ -10,22 +10,41 @@ import java.util.Map;
 public class Route {
    private Map<String,Route> children = new HashMap<>();
    private Map<String,List<Middleware>> middlewares = new HashMap<>();
-   private boolean isParameterized = false;
    private String keyParam;
-   private Map<String,String> params = new HashMap<>(); // <Method,param>
+   private Map<String,Map<Integer,String>> params = new HashMap<>();
+   private boolean isEndpoint = false;
+
+   public void setEndpoint(boolean isEndpoint) {
+      this.isEndpoint = isEndpoint;
+   }
+
+    public boolean isEndpoint() {
+        return isEndpoint;
+    }
+
+   /**
+    POST 2-postId,4-userId
+    GET 2-postId,4-userId
+    */
+
+   public void setParams(Map<Integer,String> params, String method) {
+      this.params.put(method, params);
+   }
+
+   public Map<Integer,String> getParams(String method) {
+      return params.getOrDefault(method, new HashMap<>());
+   }
+
+   public boolean hasParams(String method) {
+      return params.containsKey(method);
+   }
+
    public Map<String, Route> getChildren() {
       return children;
    }
 
-   public void setParams(String method, String key) {
-      this.params.put(method, key);
-      this.isParameterized = true;
-      this.keyParam = key;
-   }
 
-   public String getParam(String method) {
-      return params.get(method);
-   }
+
 
    public String getKeyParam() {
         return keyParam;
@@ -53,13 +72,5 @@ public class Route {
 
    public boolean isMethodSupported(String method) {
       return middlewares.containsKey(method);
-   }
-
-   public boolean isParameterized(String method) {
-      return params.containsKey(method);
-   }
-
-   public void setParameterized(boolean parameterized) {
-      isParameterized = parameterized;
    }
 }
