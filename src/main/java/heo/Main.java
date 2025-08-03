@@ -21,7 +21,19 @@ public class Main {
         heo.use(new Morgan());
         heo.use(new ErrorHandlerMw());
 
-        heo.get("/test/:slug",(req,res,next)->{
+        heo.get("/test/:slug/follow",(req,res,next)->{
+            res.json(req.params("slug"));
+        });
+
+        heo.delete("/test/:slug/follow",(req,res,next)->{
+            res.json(req.params("slug"));
+        });
+
+        heo.get("/test2/:slug",(req,res,next)->{
+            res.json(req.params("slug"));
+        });
+
+        heo.delete("/test2/:slug",(req,res,next)->{
             res.json(req.params("slug"));
         });
 

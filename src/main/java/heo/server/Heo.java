@@ -179,12 +179,14 @@ public class Heo implements RouterHandler {
                 if (routeFound != null){
 
                     // add param
-                    if (routeFound.isParameterized()){
-                        System.out.println("Parameterized route found: " + path);
-                        System.out.print("Parameters key : "+ routeFound.getKeyParam());
-                        String value = path.substring(path.lastIndexOf("/") + 1);
+                    if (routeFound.isParameterized(method)){
+                        // 2-id
+                        String keyParam = routeFound.getParam(method);
+                        String key = keyParam.split("-")[1];
+                        String value = path.split("/")[Integer.parseInt(keyParam.split("-")[0])];
+                        System.out.println(" with value: " + value);
                         req.setParams(
-                                Collections.singletonMap(routeFound.getKeyParam(), value)
+                                Collections.singletonMap(key, value)
                         );
                     }
 

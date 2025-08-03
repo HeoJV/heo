@@ -12,8 +12,19 @@ public class Route {
    private Map<String,List<Middleware>> middlewares = new HashMap<>();
    private boolean isParameterized = false;
    private String keyParam;
+   private Map<String,String> params = new HashMap<>(); // <Method,param>
    public Map<String, Route> getChildren() {
       return children;
+   }
+
+   public void setParams(String method, String key) {
+      this.params.put(method, key);
+      this.isParameterized = true;
+      this.keyParam = key;
+   }
+
+   public String getParam(String method) {
+      return params.get(method);
    }
 
    public String getKeyParam() {
@@ -23,6 +34,7 @@ public class Route {
     public void setKeyParam(String keyParam) {
         this.keyParam = keyParam;
     }
+
 
    public void setMiddlewares(String method, List<Middleware> middlewares) {
       this.middlewares.put(
@@ -43,8 +55,8 @@ public class Route {
       return middlewares.containsKey(method);
    }
 
-   public boolean isParameterized() {
-      return isParameterized;
+   public boolean isParameterized(String method) {
+      return params.containsKey(method);
    }
 
    public void setParameterized(boolean parameterized) {

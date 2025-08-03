@@ -99,20 +99,26 @@ public class Router implements RouterHandler {
      */
 
     private void addRoute(String method,String path,Middleware ...middlewares){
+        System.out.println("Adding route: " + method + " " + path);
         Route current = this.root;
         String[] parts = path.split("/");
         boolean isNew = false;
-        for (String part: parts){
+        String keyParam = null;
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
             if (part.isEmpty()) {
                 continue;
+            }
+            if (part.startsWith(":")) {
+                keyParam = part.substring(1);
             }
             if (current.getChildren().containsKey(part)) {
                 current = current.getChildren().get(part);
             } else {
+                System.out.println("Creating new route for part: " + part);
                 isNew = true;
                 Route newRoute = new Route();
-                newRoute.setParameterized(part.startsWith(":"));
-                newRoute.setKeyParam(part.startsWith(":") ? part.substring(1) : null);
+                current.setParams(method, keyParam);
                 current.getChildren().put(part, newRoute);
                 current = newRoute;
             }
@@ -128,26 +134,37 @@ public class Router implements RouterHandler {
             }
         });
         combined.addAll(List.of(middlewares));
+        System.out.println("Setting middlewares for route: " + method + " " + path+ " with middlewares: " + combined.size());
         current.setMiddlewares(method, combined);
+        current.setParams(method, keyParam);
     }
 
     public Route search(String path,String method){
         Route current = root;
         String[] parts = path.split("/");
-        for (String part : parts) {
+        System.out.println("Searching for path: " + path + " with method: " + method);
+        String keyParam = null;
+        for (int i = 0 ; i < parts.length; i++) {
+            String part = parts[i];
             if (part.isEmpty()) {
                 continue;
             }
             assert current != null;
             Map<String,Route> children = current.getChildren();
+            System.out.println("part current: " + part);
             if (children.containsKey(part)) {
                 current = current.getChildren().get(part);
             }
-            else if (children.values().stream().anyMatch(Route::isParameterized)){
+            else if (current.getChildren().values().stream().anyMatch(route -> route.isParameterized(method))){
                 current = current.getChildren().values().stream()
-                        .filter(Route::isParameterized)
+                        .filter(route -> route.isParameterized(method))
                         .findFirst()
                         .orElse(null);
+                assert current != null;
+                System.out.println("Found parameterized route: " + current.getParam(method));
+                if (current != null && current.getKeyParam() != null) {
+                    keyParam = i+"-" + current.getParam(method);
+                }
             }
             else{
                 return null;
@@ -158,6 +175,8 @@ public class Router implements RouterHandler {
         if (!current.isMethodSupported(method)){
             throw new MethodNotAllowError("Method not allow");
         }
+
+        current.setParams(method, keyParam);
 
         return current;
     }
