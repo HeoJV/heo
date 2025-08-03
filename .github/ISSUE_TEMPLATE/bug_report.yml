@@ -1,0 +1,146 @@
+name: 🐛 Bug Report
+description: Create a report to help us improve Heo framework
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Prerequisites
+      description: By submitting this issue, you agree to follow our Code of Conduct
+      options:
+        - label: I have searched existing issues to ensure this bug hasn't been reported before
+          required: true
+        - label: I have read the documentation and confirmed this is not expected behavior
+          required: true
+        - label: I am running the latest version of Heo framework
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: A clear and concise description of what actually happened
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Create a new Heo application
+        2. Add the following code...
+        3. Run the application
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Minimal Reproducible Example
+      description: Please provide a minimal code example that reproduces the issue
+      render: java
+      placeholder: |
+        import heo.server.Heo;
+
+        public class Example {
+            public static void main(String[] args) {
+                Heo app = new Heo();
+                // Your code here that reproduces the bug
+                app.listen(8080);
+            }
+        }
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error Output
+      description: If applicable, add the full error message and stack trace
+      render: text
+      placeholder: Paste the error output here...
+
+  - type: input
+    id: java-version
+    attributes:
+      label: Java Version
+      description: What version of Java are you using?
+      placeholder: "e.g., Java 22, Java 17, etc."
+    validations:
+      required: true
+
+  - type: input
+    id: heo-version
+    attributes:
+      label: Heo Version
+      description: What version of Heo framework are you using?
+      placeholder: "e.g., 1.0.0, main branch, etc."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - Windows
+        - macOS
+        - Linux (Ubuntu)
+        - Linux (CentOS/RHEL)
+        - Linux (Other)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: build-tool
+    attributes:
+      label: Build Tool
+      description: What build tool are you using?
+      placeholder: "e.g., Maven 3.9.0, Gradle 8.0, manual compilation"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (screenshots, logs, etc.)
+      placeholder: Any additional information that might help...
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you like to contribute to fixing this bug?
+      options:
+        - label: I would like to work on fixing this bug
+          required: false

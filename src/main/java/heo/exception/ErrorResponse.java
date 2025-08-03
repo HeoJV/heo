@@ -4,6 +4,10 @@ package heo.exception;
 public class ErrorResponse extends RuntimeException {
    private int status;
 
+   public int getStatus() {
+      return status;
+   }
+
    public ErrorResponse(String message, int status) {
       super(message);
       this.status = status;

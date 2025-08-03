@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/102004tan/heo/tree/main/docs
+    about: Read the comprehensive documentation for Heo framework
+  - name: 💬 Discussions
+    url: https://github.com/102004tan/heo/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🛡️ Security Issues
+    url: https://github.com/102004tan/heo/security/advisories/new
+    about: Report security vulnerabilities privately
