@@ -4,9 +4,37 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>heo</groupId>
+
+
+
+
+    <groupId>com.heo</groupId>
     <artifactId>heo</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
+    <name>Heo</name>
+    <description>simple http framework same express.js</description>
+    <url>https://github.com/102004tan/heo</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>yourid</id>
+            <name>Your Name</name>
+            <email>your.email@example.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/yourname/your-library</url>
+        <connection>scm:git:https://github.com/yourname/your-library.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/yourname/your-library.git</developerConnection>
+    </scm>
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>

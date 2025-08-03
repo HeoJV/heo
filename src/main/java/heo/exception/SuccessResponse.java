@@ -1,4 +1,3 @@
-// Source code is decompiled from a .class file using FernFlower decompiler.
 package heo.exception;
 
 import heo.http.Response;
@@ -20,7 +19,7 @@ public class SuccessResponse<T> {
       this.status = status;
    }
 
-   public SuccessResponse send(Response res) {
+   public SuccessResponse<T> send(Response res) {
       Map<String, Object> responseBody = Map.of("message", this.message, "data", this.data, "statusCode", this.status);
       res.status(this.status).json(responseBody);
       return this;
