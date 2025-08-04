@@ -33,10 +33,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Heo server class that handles HTTP requests and routes.
- * This class allows you to define routes, use middlewares, and handle requests.
- * @author 102004tan
- * @version 1.0
+ * File: Heo.java
+ * Description: Heo is a simple HTTP server framework that allows you to create web applications easily.
+ * Author: 102004tan
+ * Created: 25/07/2025
+ * Updated: 04/08/2025
  */
 public class Heo implements RouterHandler {
     private ErrorHandler errorHandler;

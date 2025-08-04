@@ -7,6 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * File: Route.java
+ * Description: Route class for handling route definitions, parameters, and middlewares in a web application.
+ * Author: 102004tan
+ * Created: 25/07/2025
+ * Updated: 04/08/2025
+ */
 public class Route {
    private Map<String,Route> children = new HashMap<>();
    private Map<String,List<Middleware>> middlewares = new HashMap<>();
@@ -16,6 +23,14 @@ public class Route {
 
    public void setEndpoint(boolean isEndpoint) {
       this.isEndpoint = isEndpoint;
+   }
+
+   public void setMiddlewares(Map<String,List<Middleware>> middlewares) {
+      this.middlewares = middlewares;
+   }
+
+   public Map<String,List<Middleware>> getMiddlewares() {
+      return middlewares;
    }
 
     public boolean isEndpoint() {
