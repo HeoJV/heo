@@ -105,6 +105,11 @@ public class Router implements RouterHandler {
         String[] parts = path.split("/");
         boolean isNew = false;
         Map<Integer,String> params = new HashMap<>();
+        if (path.isEmpty() || path.equals("/")) {
+            current.setEndpoint(true);
+            current.setMiddlewares(method, List.of(middlewares));
+            return;
+        }
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
             if (part.isEmpty()) {
