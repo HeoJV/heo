@@ -21,34 +21,6 @@ public class Main {
         heo.use(new Morgan());
         heo.use(new ErrorHandlerMw());
 
-        heo.get("/test/:slug/:abc",(req,res,next)->{
-            res.json(
-                    Map.of(
-                            "message", "Hello World",
-                            "slug", req.params("slug"),
-                            "abc", req.params("abc")
-                    )
-            );
-        });
-
-        heo.get("/test/:slug/:abc/follow",(req,res,next)->{
-            res.json(
-                    Map.of(
-                            "message", "Hello World follow",
-                            "slug", req.params("slug"),
-                            "abc", req.params("abc")
-                    )
-            );
-        });
-
-        heo.get("/test/:abc",(req,res,next)->{
-            res.json(Map.of(
-                    "message", "Hello World",
-                    "slug", req.params("abc")
-            ));
-        });
-
-
         heo.listen(port,()->{
             Console.log("Server is listening in port ",port);
         });
