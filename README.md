@@ -1,4 +1,4 @@
-# Heo - A Mini Java HTTP Framework 🐷
+# Heo - A Mini Java HTTP Framework
 
 <p align="center">
   <img src="logo.png" alt="Heo Logo" width="150"/>
@@ -29,38 +29,66 @@
 - 🛣️ **Smart Routing**: Dynamic routes with parameters (e.g., `/users/:id`)
 - 🔧 **Built-in Utilities**: JSON parser, URL-encoded parser, CORS, Morgan logging
 - 📦 **Zero Dependencies**: Only uses Java Core APIs
-- 🎯 **Thread Pool**: Efficient concurrent request handling
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation & Setup
 
 ### System Requirements
 
 - Java 22 or higher
-- Maven (optional)
+- Maven
 
-### 1. Download and Setup
+### Option 1: Use with Maven (Recommended)
+
+The easiest way to use Heo is through Maven with JitPack. Follow these steps:
+
+1. **Create a new Maven project** or open your existing project
+
+2. **Add the JitPack repository** to your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+3. **Add Heo dependency**:
+
+```xml
+<dependency>
+    <groupId>com.github.HeoJV</groupId>
+    <artifactId>heo</artifactId>
+    <version>v1.0.0</version>
+</dependency>
+```
+
+4. **Reload Maven project** to download dependencies
+
+### Option 2: Build from Source
+
+If you want to modify the framework or contribute:
+
+1. **Clone the repository**:
 
 ```bash
-git clone https://github.com/102004tan/heo.git
+git clone https://github.com/HeoJV/heo.git
 cd heo
 ```
 
-### 2. Run with Maven (Recommended)
+2. **Build with Maven**:
+
+```bash
+mvn clean install
+```
+
+3. **Run the example** (optional):
 
 ```bash
 mvn compile exec:java -Dexec.mainClass="examples.HelloWorld"
-```
-
-### 3. Or Manual Compilation
-
-```bash
-# Compile all Java files
-javac -d out src/main/java/heo/**/*.java
-
-# Run example
-java -cp out examples.HelloWorld
 ```
 
 ### 4. Hello World Example
@@ -147,8 +175,15 @@ import heo.middleware.*;
 
 Heo app = new Heo();
 
-// Use built-in middleware
-
+// Global middleware
+app.use(new Morgan("dev"));  // Request logging
+        app.use(new Json());         // Parse JSON body
+        app.use(new Cors(
+        List.of("*"),                    // Allowed origins
+    List.of("GET", "POST", "PUT"),   // Allowed methods
+    List.of("*"),                    // Allowed headers
+    true                             // Allow credentials
+            ));
 
 // Route-specific middleware
 app.get("/protected", authMiddleware, (req, res, next) -> {

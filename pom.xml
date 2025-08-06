@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.heo</groupId>
+    <groupId>com.github.HeoJV</groupId>
     <artifactId>heo</artifactId>
     <version>1.0.0</version>
     <name>Heo</name>
-    <description>simple http framework same express.js</description>
-    <url>https://github.com/102004tan/heo</url>
+    <description>Minimalist Java HTTP framework</description>
+    <url>https://github.com/HeoJV/heo</url>
 
     <licenses>
         <license>
@@ -18,19 +18,21 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <id>yourid</id>
-            <name>Your Name</name>
-            <email>your.email@example.com</email>
-        </developer>
-    </developers>
 
-    <scm>
-        <url>https://github.com/yourname/your-library</url>
-        <connection>scm:git:https://github.com/yourname/your-library.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/yourname/your-library.git</developerConnection>
-    </scm>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <release>22</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
@@ -44,6 +46,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
