@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '.github/workflows/release.yml'
 
 jobs:
    release:

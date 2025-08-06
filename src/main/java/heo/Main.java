@@ -21,6 +21,15 @@ public class Main {
         heo.use(new Morgan());
         heo.use(new ErrorHandlerMw());
 
+        heo.get("/", (req,res,next) -> {
+            res.json(Map.of("message", "Hello World"));
+        });
+
+        heo.get("/test", (req,res,next) -> {
+            res.json(Map.of("message", "Hello World"));
+        });
+
+
         heo.listen(port,()->{
             Console.log("Server is listening in port ",port);
         });
