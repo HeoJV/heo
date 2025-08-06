@@ -3,7 +3,7 @@ name: CI/CD - Automated Release
 on:
   push:
     branches:
-      - main
+#      - main
       - test/cicd
 #    paths-ignore:
 #      - 'README.md'
