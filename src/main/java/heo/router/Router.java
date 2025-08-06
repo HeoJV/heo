@@ -100,7 +100,6 @@ public class Router implements RouterHandler {
      */
 
     private void addRoute(String method,String path,Middleware ...middlewares){
-        System.out.println("Adding route: " + method + " " + path);
         Route current = this.root;
         String[] parts = path.split("/");
         boolean isNew = false;
