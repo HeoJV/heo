@@ -18,14 +18,13 @@
 
 - **Easy to learn**: Familiar syntax like Express.js
 - **Lightweight**: No external dependencies
-- **Efficient**: Uses thread pool for concurrent processing
 - **Flexible**: Supports middleware and dynamic routing
 
 ---
 
 ## ✨ Key Features
 
-- 🚀 **Express-like API**: `app.get()`, `app.post()`, `app.use()`, `app.listen()`
+- 🚀 **Express-like API**: `app.get()`, `app.post()`, `app.use()`, `app.listen()`,...
 - ⚡ **Middleware Support**: CORS, JSON parsing, logging, error handling
 - 🛣️ **Smart Routing**: Dynamic routes with parameters (e.g., `/users/:id`)
 - 🔧 **Built-in Utilities**: JSON parser, URL-encoded parser, CORS, Morgan logging
@@ -97,114 +96,119 @@ Heo app = new Heo();
 
 // GET route
 app.get("/users", (req, res, next) -> {
-    res.json(Map.of("users", Arrays.asList("Alice", "Bob", "Charlie")));
-});
+        res.json(Map.of("users", Arrays.asList("Alice", "Bob", "Charlie")));
+        });
 
 // POST route
-app.post("/users", (req, res, next) -> {
-    Map<String, Object> newUser = req.getBody();
+        app.post("/users", (req, res, next) -> {
+Map<String, Object> newUser = req.getBody();
     res.status(201).json(Map.of(
         "message", "User created successfully",
-        "user", newUser
-    ));
-});
+                                 "user", newUser
+                         ));
+        });
 
 // Dynamic route with parameters
-app.get("/users/:id", (req, res, next) -> {
-    String userId = req.params("id");
+        app.get("/users/:id", (req, res, next) -> {
+String userId = req.params("id");
     res.json(Map.of("userId", userId, "name", "User " + userId));
-});
+        });
 
 // Route with multiple parameters
-app.get("/users/:id/posts/:postId", (req, res, next) -> {
-    String userId = req.params("id");
-    String postId = req.params("postId");
+        app.get("/users/:id/posts/:postId", (req, res, next) -> {
+String userId = req.params("id");
+String postId = req.params("postId");
     res.json(Map.of("userId", userId, "postId", postId));
-});
+        });
 ```
 
 ### Using Middleware
 
+#### Custom Middleware Auth Sample
+```java
+import heo.middleware.Middleware;
+import heo.http.Request;
+import heo.http.Response;
+class AuthMiddleware implements Middleware {
+    @Override
+    public void handle(Request req, Response res, Middleware next) {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader != null && authHeader.equals("Bearer secret-token")) {
+            next.handle(req, res);
+        } else {
+            res.status(401).json(Map.of("error", "Unauthorized"));
+        }
+    }
+}
+```
+#### Use the Middleware in your app
 ```java
 import heo.middleware.*;
 
 Heo app = new Heo();
 
-// Global middleware
-app.use(new Morgan("dev"));  // Request logging
-app.use(new Json());         // Parse JSON body
-app.use(new Cors(
-    List.of("*"),                    // Allowed origins
-    List.of("GET", "POST", "PUT"),   // Allowed methods
-    List.of("*"),                    // Allowed headers
-    true                             // Allow credentials
-));
+// Use built-in middleware
+
 
 // Route-specific middleware
 app.get("/protected", authMiddleware, (req, res, next) -> {
-    res.send("Protected content");
+        res.send("Protected content");
 });
 
-// Custom middleware
-Middleware logMiddleware = (req, res, next) -> {
-    System.out.println("Request: " + req.getMethod() + " " + req.path);
-    next.next(req, res);
-};
-
-app.use(logMiddleware);
 ```
 
 ### Working with Request & Response
 
 ```java
 app.post("/api/data", (req, res, next) -> {
-    // Getting information from Request
-    String method = req.getMethod();           // GET, POST, etc.
-    String path = req.path;                    // /api/data
-    String userId = req.params("id");          // URL parameters
-    String searchQuery = req.getQuery("q");    // Query parameter ?q=...
-    Map<String, Object> body = req.getBody(); // Parsed JSON body
-    String authHeader = req.getHeader("Authorization");
-    String clientIP = req.getIpAddress();
+// Getting information from Request
+String method = req.getMethod();           // GET, POST, etc.
+String path = req.path;                    // /api/data
+String userId = req.params("id");          // URL parameters
+String searchQuery = req.getQuery("q");    // Query parameter ?q=...
+Map<String, Object> body = req.getBody(); // Parsed JSON body
+String authHeader = req.getHeader("Authorization");
+String clientIP = req.getIpAddress();
 
-    // Sending Response
+// Sending Response
     res.status(200)                           // Set status code
        .setHeader("Custom-Header", "value")   // Set custom header
        .json(Map.of(                         // Send JSON response
-           "success", true,
-           "data", body,
+        "success", true,
+                     "data", body,
            "timestamp", System.currentTimeMillis()
        ));
 
-    // Or send plain text
-    // res.send("Hello World!");
-});
+               // Or send plain text
+               // res.send("Hello World!");
+               });
 ```
 
 ### Error Handling
 
+
 ```java
 // Global error handler
 app.use((error, req, res) -> {
-    System.err.println("Error occurred: " + error.getMessage());
-    res.status(500).json(Map.of("error", "Internal server error"));
-});
+        System.err.println("Error occurred: " + error.getMessage());
+        res.status(500).json(Map.of("error", "Internal server error"));
+        });
 
 // Throwing custom errors
-app.get("/error-demo", (req, res, next) -> {
-    throw new NotFoundError("Resource not found");
+        app.get("/error-demo", (req, res, next) -> {
+        throw new NotFoundError("Resource not found");
 });
 
 // Handling specific errors
-app.use((error, req, res) -> {
-    if (error instanceof BadRequest) {
+        app.use((error, req, res) -> {
+        if (error instanceof BadRequest) {
         res.status(400).json(Map.of("error", "Invalid request"));
-    } else if (error instanceof NotFoundError) {
+        } else if (error instanceof NotFoundError) {
         res.status(404).json(Map.of("error", "Not found"));
-    } else {
+        } else {
         res.status(500).json(Map.of("error", "Server error"));
-    }
-});
+        }
+        });
 ```
 
 ### Sub-routers
@@ -214,17 +218,17 @@ Router apiRouter = new Router();
 
 // Define API routes
 apiRouter.get("/users", (req, res, next) -> {
-    res.json(Map.of("users", getUserList()));
-});
+        res.json(Map.of("users", getUserList()));
+        });
 
-apiRouter.post("/users", (req, res, next) -> {
-    Map<String, Object> newUser = req.getBody();
-    // User creation logic
+        apiRouter.post("/users", (req, res, next) -> {
+Map<String, Object> newUser = req.getBody();
+// User creation logic
     res.status(201).json(Map.of("message", "User created"));
-});
+        });
 
 // Mount sub-router to main app
-app.use("/api/v1", apiRouter);  // All routes will have /api/v1 prefix
+        app.use("/api/v1", apiRouter);  // All routes will have /api/v1 prefix
 ```
 
 ---
@@ -284,12 +288,12 @@ public class UserAPI {
         app.get("/users/:id", (req, res, next) -> {
             int userId = Integer.parseInt(req.params("id"));
             users.stream()
-                .filter(user -> user.get("id").equals(userId))
-                .findFirst()
-                .ifPresentOrElse(
-                    user -> res.json(user),
-                    () -> res.status(404).json(Map.of("error", "User not found"))
-                );
+                    .filter(user -> user.get("id").equals(userId))
+                    .findFirst()
+                    .ifPresentOrElse(
+                            user -> res.json(user),
+                            () -> res.status(404).json(Map.of("error", "User not found"))
+                    );
         });
 
         app.listen(3000, () -> {
@@ -320,7 +324,7 @@ public class App {
         Dotenv.config();  // Load .env file
 
         int port = Dotenv.get("PORT") != null ?
-                   Integer.parseInt(Dotenv.get("PORT")) : 3000;
+                Integer.parseInt(Dotenv.get("PORT")) : 3000;
 
         Heo app = new Heo();
         // ... setup routes

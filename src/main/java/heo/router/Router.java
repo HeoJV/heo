@@ -1,6 +1,5 @@
 package heo.router;
 
-import heo.core.Console;
 import heo.exception.MethodNotAllowError;
 import heo.exception.NotFoundError;
 import heo.http.HttpMethod;
