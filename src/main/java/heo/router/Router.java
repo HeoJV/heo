@@ -8,6 +8,13 @@ import heo.interfaces.RouterHandler;
 
 import java.util.*;
 
+/**
+ * File: Router.java
+ * Description: Router class for handling routes and middleware in a web application.
+ * Author: 102004tan
+ * Created: 25/07/2025
+ * Updated: 04/08/2025
+ */
 public class Router implements RouterHandler {
     private Route root;
     private final Map<String,List<Middleware>> globalMiddlewares = new HashMap<>();
@@ -53,6 +60,10 @@ public class Router implements RouterHandler {
 
         Route finalCurrent = current;
         router.getRoot().getChildren().forEach((key, route)->{
+            if (key.equals("/")) {
+                finalCurrent.setMiddlewares(route.getMiddlewares());
+                finalCurrent.setEndpoint(route.isEndpoint());
+            }
             if (!finalCurrent.getChildren().containsKey(key)){
                 finalCurrent.getChildren().put(key, route);
             }
@@ -99,11 +110,17 @@ public class Router implements RouterHandler {
      */
 
     private void addRoute(String method,String path,Middleware ...middlewares){
-        System.out.println("Adding route: " + method + " " + path);
         Route current = this.root;
         String[] parts = path.split("/");
         boolean isNew = false;
         Map<Integer,String> params = new HashMap<>();
+        if (path.isEmpty() || path.equals("/")) {
+            Route newRoute = new Route();
+            newRoute.setEndpoint(true);
+            newRoute.setMiddlewares(method, List.of(middlewares));
+            this.root.getChildren().put("/", newRoute);
+            return;
+        }
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
             if (part.isEmpty()) {
@@ -132,7 +149,6 @@ public class Router implements RouterHandler {
                     throw new NotFoundError("Dynamic route not found for part: " + part);
                 }
             }else {
-                System.out.println("Creating new route for part: " + part);
                 isNew = true;
                 Route newRoute = new Route();
                 if (i == parts.length - 1) {
@@ -146,7 +162,6 @@ public class Router implements RouterHandler {
         if (!isNew && current.isMethodSupported(method)) {
             return;
         }
-        System.out.println("Route is new or method not supported, setting up middlewares.");
         List<Middleware> combined = new ArrayList<>();
         globalMiddlewares.forEach((pathKey, middlewareList) -> {
             if (pathKey.equals("/") || path.startsWith(pathKey)) {
@@ -154,15 +169,20 @@ public class Router implements RouterHandler {
             }
         });
         combined.addAll(List.of(middlewares));
-        System.out.println("Setting middlewares for route: " + method + " " + path+ " with middlewares: " + combined.size());
         current.setMiddlewares(method, combined);
         current.setParams(params,method);
     }
 
     public Route search(String path,String method){
         Route current = root;
+        if (path.isEmpty() || path.equals("/")) {
+            if (current.getChildren().containsKey("/")) {
+                current = current.getChildren().get("/");
+            } else {
+                throw new NotFoundError("Cannot " + method + " " + path);
+            }
+        }
         String[] parts = path.split("/");
-        System.out.println("Searching for path: " + path + " with method: " + method);
         for (int i = 0 ; i < parts.length; i++) {
             String part = parts[i];
             if (part.isEmpty()) {
@@ -170,14 +190,12 @@ public class Router implements RouterHandler {
             }
             assert current != null;
             Map<String,Route> children = current.getChildren();
-            System.out.println("part current: " + part);
             if (children.containsKey(part)) {
                 current = current.getChildren().get(part);
             }
             else if (
                 children.keySet().stream().anyMatch(key -> key.startsWith(":"))
             ){
-                System.out.println("Found dynamic part for: " + part);
                 current = children.entrySet().stream()
                         .filter(entry -> entry.getKey().startsWith(":"))
                         .findFirst()
@@ -185,7 +203,6 @@ public class Router implements RouterHandler {
                         .orElse(null);
             }
             else{
-                System.out.println("No matching part found for: " + part);
                 current = null;
             }
         }
