@@ -14,8 +14,6 @@ on:
 #      - '.github/workflows/release.yml'
 
 jobs:
-  permissions:
-    contents: write
   release:
     runs-on: ubuntu-latest
     permissions:
