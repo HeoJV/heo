@@ -8,12 +8,12 @@
 
 
 
-    <groupId>com.heo</groupId>
+    <groupId>com.github.HeoJV</groupId>
     <artifactId>heo</artifactId>
     <version>1.0.0</version>
     <name>Heo</name>
-    <description>simple http framework same express.js</description>
-    <url>https://github.com/102004tan/heo</url>
+    <description>Minimalist Java HTTP framework</description>
+    <url>https://github.com/HeoJV/heo</url>
 
     <licenses>
         <license>
@@ -22,19 +22,22 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <id>yourid</id>
-            <name>Your Name</name>
-            <email>your.email@example.com</email>
-        </developer>
-    </developers>
 
-    <scm>
-        <url>https://github.com/yourname/your-library</url>
-        <connection>scm:git:https://github.com/yourname/your-library.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/yourname/your-library.git</developerConnection>
-    </scm>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
@@ -43,11 +46,29 @@
         <jackson.version>2.19.0</jackson.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
+<!--        <dependency>-->
+<!--            <groupId>com.github.HeoJV</groupId>-->
+<!--            <artifactId>heo</artifactId>-->
+<!--            <version>SNAPSHOT</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
