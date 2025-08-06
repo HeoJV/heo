@@ -24,7 +24,7 @@
 
 ## ✨ Key Features
 
-- 🚀 **Express-like API**: `app.get()`, `app.post()`, `app.use()`, `app.listen()`
+- 🚀 **Express-like API**: `app.get()`, `app.post()`, `app.use()`, `app.listen()`,...
 - ⚡ **Middleware Support**: CORS, JSON parsing, logging, error handling
 - 🛣️ **Smart Routing**: Dynamic routes with parameters (e.g., `/users/:id`)
 - 🔧 **Built-in Utilities**: JSON parser, URL-encoded parser, CORS, Morgan logging
@@ -152,6 +152,24 @@ String postId = req.params("postId");
 
 ### Using Middleware
 
+#### Custom Middleware Auth Sample
+```java
+import heo.middleware.Middleware;
+import heo.http.Request;
+import heo.http.Response;
+class AuthMiddleware implements Middleware {
+    @Override
+    public void handle(Request req, Response res, Middleware next) {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader != null && authHeader.equals("Bearer secret-token")) {
+            next.handle(req, res);
+        } else {
+            res.status(401).json(Map.of("error", "Unauthorized"));
+        }
+    }
+}
+```
+#### Use the Middleware in your app
 ```java
 import heo.middleware.*;
 
@@ -168,17 +186,10 @@ app.use(new Morgan("dev"));  // Request logging
             ));
 
 // Route-specific middleware
-            app.get("/protected", authMiddleware, (req, res, next) -> {
+app.get("/protected", authMiddleware, (req, res, next) -> {
         res.send("Protected content");
 });
 
-// Custom middleware
-Middleware logMiddleware = (req, res, next) -> {
-    System.out.println("Request: " + req.getMethod() + " " + req.path);
-    next.next(req, res);
-};
-
-app.use(logMiddleware);
 ```
 
 ### Working with Request & Response
@@ -209,6 +220,7 @@ String clientIP = req.getIpAddress();
 ```
 
 ### Error Handling
+
 
 ```java
 // Global error handler
