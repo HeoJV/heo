@@ -5,7 +5,7 @@ on:
     tags:
       - 'v*.*.*'
     branches:
-      - test/*
+      - demo
 #    paths-ignore:
 #      - 'README.md'
 #      - '.gitignore'
