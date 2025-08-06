@@ -45,19 +45,7 @@
         <jackson.version>2.19.0</jackson.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
-
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>com.github.HeoJV</groupId>-->
-<!--            <artifactId>heo</artifactId>-->
-<!--            <version>v1.0.0</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
