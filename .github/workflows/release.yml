@@ -49,8 +49,6 @@ jobs:
           fi
 
       - name: Create new tag
-        run: |
-#          git tag -f -a ${VERSION} -m "Release ${VERSION}."
-#          git push -f origin ${VERSION}
+        run: | 
            git tag "test/${VERSION}"
            git push origin "test/${VERSION}"
