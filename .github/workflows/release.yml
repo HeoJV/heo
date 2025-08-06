@@ -3,10 +3,9 @@ name: CI/CD - Automated Release
 on:
   push:
     tags:
-        - 'test/*'
-    branches:
-#      - main
       - 'v*'
+    branches:
+      - test/*
 #    paths-ignore:
 #      - 'README.md'
 #      - '.gitignore'
