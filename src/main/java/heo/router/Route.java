@@ -67,7 +67,7 @@ public class Route {
 
 
    public List<Middleware> getMiddlewares(String method) {
-      return middlewares.getOrDefault(method, List.of());
+        return middlewares.getOrDefault(method, new ArrayList<>());
    }
 
    public boolean isMethodSupported(String method) {
