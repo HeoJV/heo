@@ -6,7 +6,7 @@ on:
         - 'test/*'
     branches:
 #      - main
-      - test/cicd
+      - 'v*'
 #    paths-ignore:
 #      - 'README.md'
 #      - '.gitignore'
