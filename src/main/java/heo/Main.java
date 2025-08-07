@@ -1,12 +1,10 @@
 package heo;
 import heo.core.Console;
-import heo.exception.BadRequest;
+import heo.exception.NotFoundError;
 import heo.http.Request;
 import heo.http.Response;
 import heo.interfaces.ErrorHandler;
 import heo.middleware.Morgan;
-import heo.router.Router;
-import heo.server.Heo;
 
 import java.util.Map;
 
@@ -22,10 +20,10 @@ public class Main {
         heo.use(new ErrorHandlerMw());
 
         heo.get("/", (req,res,next) -> {
-            res.json(Map.of("message", "Hello World"));
+            throw new NotFoundError("Not Found");
         });
 
-        heo.get("/test", (req,res,next) -> {
+        heo.get("/test-change", (req,res,next) -> {
             res.json(Map.of("message", "Hello World test"));
         });
 

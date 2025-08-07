@@ -3,7 +3,7 @@ name: CI/CD - Automated Release
 on:
   push:
     branches:
-      - main
+      - 'testmain'
     paths-ignore:
       - 'README.md'
       - '.gitignore'
