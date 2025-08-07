@@ -1,11 +1,9 @@
 package heo;
 import heo.core.Console;
-import heo.exception.BadRequest;
 import heo.http.Request;
 import heo.http.Response;
 import heo.interfaces.ErrorHandler;
 import heo.middleware.Morgan;
-import heo.router.Router;
 import heo.server.Heo;
 
 import java.util.Map;

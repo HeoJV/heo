@@ -212,8 +212,8 @@ public class Router implements RouterHandler {
         }
 
 
-        if (!current.isMethodSupported(method) && !current.getMiddlewares(method).isEmpty()) {
-            throw new MethodNotAllowError("Method not allow");
+        if (!current.isMethodSupported(method)) {
+            throw new MethodNotAllowError("Cannot "+method + " " + path);
         }
 
         return current;
