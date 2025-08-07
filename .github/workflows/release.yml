@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - 'testmain'
+  pull_request:
+    branches:
+      - 'testmain'
     paths-ignore:
       - 'README.md'
       - '.gitignore'
