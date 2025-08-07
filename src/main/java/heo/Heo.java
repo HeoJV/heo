@@ -1,4 +1,4 @@
-package heo.server;
+package heo;
 
 
 import heo.exception.MethodNotAllowError;
@@ -78,14 +78,6 @@ public class Heo implements RouterHandler {
             while (true) {
                 try {
                     ExecutorService pool = Executors.newFixedThreadPool(100);
-//                    Socket socket = serverSocket.accept();
-//                    new Thread(() -> {
-//                        try {
-//                            handle(socket);
-//                        } catch (IOException e) {
-//                            throw new RuntimeException(e);
-//                        }
-//                    }).start();
                     Socket socket = serverSocket.accept();
                     pool.submit(() -> handle(socket));
                     socket.setSoTimeout(30000);
@@ -94,7 +86,7 @@ public class Heo implements RouterHandler {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error starting server on port " + port + ": " + e.getMessage());
         }
     }
 
@@ -156,18 +148,6 @@ public class Heo implements RouterHandler {
                     }
                 }
 
-//                int contentLength = 0;
-//                while ((line = in.readLine()) != null && !line.isEmpty()) {
-//                    if (line.toLowerCase().startsWith("content-length:")) {
-//                        contentLength = Integer.parseInt(line.substring("content-length:".length()).trim());
-//                    }
-//                }
-//                char[] bodyChars = new char[contentLength];
-//                int read = in.read(bodyChars, 0, contentLength);
-//                String body = new String(bodyChars, 0, read);
-//                req.setRawBody(body);
-//                req.setHeaders("Content-Type", "application/json");
-
                 StringBuilder bodyBuilder = new StringBuilder();
                 while (in.ready()) {
                     bodyBuilder.append((char) in.read());
@@ -179,7 +159,6 @@ public class Heo implements RouterHandler {
 
                 Route routeFound = router.search(path,method);
                 if (routeFound != null){
-                    System.out.println("Has params: " + routeFound.hasParams(method));
                     if (routeFound.hasParams(method)){
                         Map<Integer,String> params = routeFound.getParams(method);
                         Map<String,String> paramMap = new HashMap<>();
@@ -202,10 +181,11 @@ public class Heo implements RouterHandler {
                 res.send("400 Bad Request");
             }
         } catch (Exception e) {
-            if (e instanceof MethodNotAllowError){
-                res.status(HttpStatusCode.METHOD_NOT_ALLOWED).send("Method not allow");
-            }else if (e instanceof NotFoundError){
-                res.status(HttpStatusCode.NOT_FOUND).send(e.getMessage());
+            if (errorHandler != null){
+                res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).send("500 Internal Server Error");
+            }else{
+                System.err.println("Error handling request: " + e.getMessage());
+                System.exit(1);
             }
         }
     }
