@@ -17,7 +17,7 @@ public class RouterTest {
 
     @Test
     void shouldAddAndFindGetRoute() {
-        router.get("/products/demo-fail", (req, res, next) -> {});
+        router.get("/products/demo-fail-hehe", (req, res, next) -> {});
         router.get("/products/:id", (req, res, next) -> {});
         router.get("/products/:id/reviews", (req, res, next) -> {});
         router.get("/products/:id/reviews/:reviewId", (req, res, next) -> {});
