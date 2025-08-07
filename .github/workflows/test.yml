@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'dev'
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'docs/**'
+      - '.github/workflows/release.yml'
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java 22 (Temurin)
+        uses: actions/setup-java@v3
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+
+      - name: Run tests
+        run: mvn test
