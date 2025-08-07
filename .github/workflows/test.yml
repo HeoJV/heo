@@ -1,10 +1,6 @@
-name: CI/CD - Automated Release
+name: CI
 
 on:
-  push:
-    branches:
-      - 'main'
-      - 'dev'
   pull_request:
     branches:
       - 'main'
@@ -32,6 +28,3 @@ jobs:
 
       - name: Run tests
         run: mvn test
-#  build:
-#    runs-on: ubuntu-latest
-#    needs: test
